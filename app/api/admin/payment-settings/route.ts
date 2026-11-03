@@ -1,0 +1,11 @@
+import { NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '@/lib/db'
+import { paymentSettings } from '@/lib/db/schema'
+import { getAdmin } from '@/lib/admin-auth'
+import { assertSafeProviderUrl } from '@/lib/server/provider-url'
+import { writeFile, mkdir } from 'node:fs/promises'
+import { getPaymentApiKey } from '@/lib/server/payment-secrets'
+const schema = z.object({ createQrUrl: z.string().url().default('https://gateway.anujbots.in/autoqr.php'), verifyUrl: z.string().url().default('https://gateway.anujbots.in/autoverify.php'), apiKey: z.string().trim().min(1).optional(), enabled: z.boolean().optional() })
+export async function POST(request: Request) { if (!(await getAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 }); const parsed = schema.safeParse(await request.json().catch(() => null)); if (!parsed.success) return NextResponse.json({ error: 'Invalid payment settings' }, { status: 400 }); try { await assertSafeProviderUrl(parsed.data.createQrUrl); await assertSafeProviderUrl(parsed.data.verifyUrl) } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : 'Unsafe gateway URL' }, { status: 400 }) } if (parsed.data.apiKey) { const dir = process.env.PAYMENT_API_KEY_FILE?.split('/').slice(0, -1).join('/') || '/etc/developer-zone/secrets'; const file = process.env.PAYMENT_API_KEY_FILE || `${dir}/payment-api-key`; try { await mkdir(dir, { recursive: true, mode: 0o700 }); await writeFile(file, `${parsed.data.apiKey}\n`, { mode: 0o600 }); } catch { return NextResponse.json({ error: 'Secure credential storage is unavailable.' }, { status: 503 }) } } const current = await db.select({ apiKey: paymentSettings.apiKey }).from(paymentSettings).where(eq(paymentSettings.id, 'default')).limit(1); await db.insert(paymentSettings).values({ id: 'default', createQrUrl: parsed.data.createQrUrl, verifyUrl: parsed.data.verifyUrl, apiKey: null, enabled: parsed.data.enabled ?? false }).onConflictDoUpdate({ target: paymentSettings.id, set: { createQrUrl: parsed.data.createQrUrl, verifyUrl: parsed.data.verifyUrl, apiKey: null, enabled: parsed.data.enabled ?? false, updatedAt: new Date() } }); return NextResponse.json({ ok: true, configured: Boolean(parsed.data.apiKey || await getPaymentApiKey(current[0]?.apiKey)) }) }

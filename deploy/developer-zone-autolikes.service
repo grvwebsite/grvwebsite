@@ -1,0 +1,15 @@
+[Unit]
+Description=Developer Zone AutoLikes worker
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=developer-zone
+WorkingDirectory=/var/www/developer-zone
+EnvironmentFile=/etc/developer-zone/web.env
+ExecStart=/usr/bin/pnpm worker:autolikes
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

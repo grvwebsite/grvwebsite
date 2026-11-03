@@ -1,0 +1,48 @@
+{
+  "name": "my-project",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.3.4",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "bootstrap:admin": "node --env-file-if-exists=.env.local scripts/bootstrap-admin.mjs",
+    "worker:autolikes": "node --env-file-if-exists=.env.local scripts/autolikes-worker.mjs",
+    "worker:payments": "node --env-file-if-exists=.env.local scripts/payment-worker.mjs",
+    "dev:notify": "node --env-file-if-exists=.env scripts/start-with-notice.mjs",
+    "start:notify": "node --env-file-if-exists=.env scripts/start-with-notice.mjs --start"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.5.0",
+    "@vercel/analytics": "1.6.1",
+    "bcryptjs": "^3.0.3",
+    "better-auth": "^1.7.12",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.4",
+    "lucide-react": "^1.16.0",
+    "next": "16.4.3",
+    "pg": "^8.23.1",
+    "react": "^19",
+    "react-dom": "^19",
+    "shadcn": "^4.11.0",
+    "stripe": "^23.0.1",
+    "tailwind-merge": "^3.3.1",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.11",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.7.3"
+  }
+}
